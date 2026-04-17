@@ -420,13 +420,27 @@ function parseRawFecha(cell) {
 }
 
 function poblarFiltros() {
+  const filterEstado = document.getElementById('filter-estado');
+  const filterResp = document.getElementById('filter-responsable');
+  const filterPrio = document.getElementById('filter-prioridad');
+  
+  const prevEstado = filterEstado.value || 'Todos';
+  const prevResp = filterResp.value || 'Todos';
+  const prevPrio = filterPrio.value || 'Todos';
+  const prevSearch = document.getElementById('search').value;
+  
   const estados = ['Todos', ...new Set(cotizaciones.map(c => c.estado).filter(Boolean))];
   const responsables = ['Todos', ...new Set(cotizaciones.map(c => c.responsable).filter(Boolean))];
   const prioridades = ['Todos', ...new Set(cotizaciones.map(c => c.prioridad).filter(Boolean))];
   
-  document.getElementById('filter-estado').innerHTML = estados.map(e => `<option value="${e}">${e === 'Todos' ? 'Todos los estados' : e}</option>`).join('');
-  document.getElementById('filter-responsable').innerHTML = responsables.map(r => `<option value="${r}">${r === 'Todos' ? 'Todo el equipo' : r}</option>`).join('');
-  document.getElementById('filter-prioridad').innerHTML = prioridades.map(p => `<option value="${p}">${p === 'Todos' ? 'Todas las prioridades' : p}</option>`).join('');
+  filterEstado.innerHTML = estados.map(e => `<option value="${e}">${e === 'Todos' ? 'Todos los estados' : e}</option>`).join('');
+  filterResp.innerHTML = responsables.map(r => `<option value="${r}">${r === 'Todos' ? 'Todo el equipo' : r}</option>`).join('');
+  filterPrio.innerHTML = prioridades.map(p => `<option value="${p}">${p === 'Todos' ? 'Todas las prioridades' : p}</option>`).join('');
+  
+  if (estados.includes(prevEstado)) filterEstado.value = prevEstado;
+  if (responsables.includes(prevResp)) filterResp.value = prevResp;
+  if (prioridades.includes(prevPrio)) filterPrio.value = prevPrio;
+  document.getElementById('search').value = prevSearch;
 }
 
 function aplicarFiltros() {
