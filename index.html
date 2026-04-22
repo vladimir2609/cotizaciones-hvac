@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cotizaciones HVAC · TodoClima</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&family=Geist:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -206,14 +210,20 @@ select.input-modern {
       
       <div class="bento-card col-span-4 row-span-2 p-7 flex flex-col justify-between">
         <div>
-          <div class="mono text-[10px] uppercase tracking-[0.2em] text-neutral-500 mb-2">Total registradas</div>
-          <div class="stat-big text-white tabular" id="stat-total">0</div>
+          <div class="mono text-[10px] uppercase tracking-[0.2em] text-neutral-500 mb-4">Top clientes</div>
+          <div id="top-clientes" class="space-y-3"></div>
         </div>
-        <div class="flex items-end justify-between mt-4">
-          <div class="serif-italic text-lg text-neutral-500" id="stat-period">Todas las etapas</div>
-          <svg width="60" height="24" viewBox="0 0 60 24" fill="none">
-            <path d="M0 18 L12 14 L24 16 L36 8 L48 10 L60 4" stroke="#fef3c7" stroke-width="1.5" opacity="0.6"/>
-          </svg>
+        <div class="flex items-end justify-between mt-4 pt-4 border-t border-neutral-900">
+          <div class="serif-italic text-sm text-neutral-500">Ranking por cotizaciones</div>
+          <div class="mono text-[10px] text-neutral-600"><span id="total-clientes">0</span> clientes</div>
+        </div>
+      </div>
+
+      <div class="bento-card col-span-4 p-5">
+        <div class="mono text-[10px] uppercase tracking-[0.2em] text-neutral-500 mb-2">Total registradas</div>
+        <div class="flex items-baseline gap-2">
+          <div class="stat-big text-white tabular" id="stat-total">0</div>
+          <div class="serif-italic text-sm text-neutral-500">cotizaciones</div>
         </div>
       </div>
 
@@ -237,15 +247,6 @@ select.input-modern {
 
       <div class="bento-card col-span-2 p-5">
         <div class="flex items-center justify-between mb-3">
-          <div class="mono text-[10px] uppercase tracking-[0.2em] text-emerald-300/70">Aprobado</div>
-          <div class="w-1.5 h-1.5 rounded-full bg-emerald-300"></div>
-        </div>
-        <div class="text-4xl font-light text-white tabular mb-1" id="stat-aprobado">0</div>
-        <div class="text-[11px] text-neutral-500">OC recibida</div>
-      </div>
-
-      <div class="bento-card col-span-2 p-5">
-        <div class="flex items-center justify-between mb-3">
           <div class="mono text-[10px] uppercase tracking-[0.2em] text-neutral-500">Desestimado</div>
           <div class="w-1.5 h-1.5 rounded-full bg-neutral-600"></div>
         </div>
@@ -253,16 +254,16 @@ select.input-modern {
         <div class="text-[11px] text-neutral-500">cerradas</div>
       </div>
 
-      <div class="bento-card col-span-4 p-5 flex items-center justify-between">
+      <div class="bento-card col-span-2 p-5 flex items-center justify-between">
         <div>
-          <div class="mono text-[10px] uppercase tracking-[0.2em] text-red-400/70 mb-1">Críticas activas</div>
+          <div class="mono text-[10px] uppercase tracking-[0.2em] text-red-400/70 mb-1">Críticas</div>
           <div class="flex items-baseline gap-2">
             <span class="text-4xl font-light text-white tabular" id="stat-critico">0</span>
-            <span class="serif-italic text-sm text-neutral-500">requieren atención</span>
           </div>
+          <div class="text-[11px] text-neutral-500 mt-1">activas</div>
         </div>
-        <div class="w-12 h-12 rounded-full border border-red-400/30 flex items-center justify-center">
-          <div class="w-3 h-3 rounded-full bg-red-400 dot-critico"></div>
+        <div class="w-10 h-10 rounded-full border border-red-400/30 flex items-center justify-center flex-shrink-0">
+          <div class="w-2.5 h-2.5 rounded-full bg-red-400 dot-critico"></div>
         </div>
       </div>
 
@@ -381,6 +382,7 @@ async function cargarDatos() {
     poblarFiltros();
     aplicarFiltros();
     actualizarStats();
+    renderTopClientes();
     renderProximasEntregas();
     
     const ahora = new Date();
@@ -523,9 +525,54 @@ function actualizarStats() {
   document.getElementById('stat-total').textContent = cotizaciones.length;
   document.getElementById('stat-enviado').textContent = cotizaciones.filter(c => c.estado === 'Enviado').length;
   document.getElementById('stat-proceso').textContent = cotizaciones.filter(c => c.estado === 'En proceso').length;
-  document.getElementById('stat-aprobado').textContent = cotizaciones.filter(c => c.estado === 'Aprobado').length;
   document.getElementById('stat-desestimado').textContent = cotizaciones.filter(c => c.estado === 'Desestimado').length;
   document.getElementById('stat-critico').textContent = cotizaciones.filter(c => (c.prioridad === 'Critico' || c.prioridad === 'Crítico') && c.estado !== 'Desestimado').length;
+}
+
+function renderTopClientes() {
+  const conteo = {};
+  cotizaciones.forEach(c => {
+    if (c.cliente) conteo[c.cliente] = (conteo[c.cliente] || 0) + 1;
+  });
+  
+  const totalClientes = Object.keys(conteo).length;
+  document.getElementById('total-clientes').textContent = totalClientes;
+  
+  const top5 = Object.entries(conteo)
+    .sort((a,b) => b[1] - a[1])
+    .slice(0, 5);
+  
+  if (top5.length === 0) {
+    document.getElementById('top-clientes').innerHTML = '<div class="text-[12px] text-neutral-600 italic">sin datos</div>';
+    return;
+  }
+  
+  const maxCount = top5[0][1];
+  
+  document.getElementById('top-clientes').innerHTML = top5.map(([cliente, count], idx) => {
+    const porcentaje = (count / maxCount) * 100;
+    const colors = ['bg-amber-200', 'bg-amber-200/70', 'bg-amber-200/50', 'bg-amber-200/30', 'bg-amber-200/20'];
+    return `
+      <div class="group cursor-pointer" onclick="filtrarPorCliente('${cliente.replace(/'/g, "\\'")}')">
+        <div class="flex items-center justify-between mb-1.5">
+          <div class="flex items-center gap-2 min-w-0 flex-1">
+            <span class="mono text-[10px] text-neutral-600 tabular">${String(idx+1).padStart(2,'0')}</span>
+            <span class="text-[13px] text-white font-medium truncate">${cliente}</span>
+          </div>
+          <span class="mono text-[11px] text-neutral-400 tabular ml-2">${count}</span>
+        </div>
+        <div class="h-1 bg-neutral-900 rounded-full overflow-hidden">
+          <div class="h-full ${colors[idx]} rounded-full transition-all" style="width: ${porcentaje}%"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function filtrarPorCliente(cliente) {
+  document.getElementById('search').value = cliente;
+  aplicarFiltros();
+  window.scrollTo({ top: document.querySelector('table').offsetTop - 100, behavior: 'smooth' });
 }
 
 function renderProximasEntregas() {
