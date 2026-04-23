@@ -488,7 +488,7 @@ const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tq
 const SHEET_EDIT_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`;
 
 // ⚠️  REEMPLAZA ESTA URL con la URL /exec del Web App después de publicarlo
-const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwRl7SRLnKashtBnsrjB1VaPnkSX6n5TQSJ5JUhDcoSa4FiRTa38tXSkx36_8wD8zxp/exec';
+const WEBAPP_URL = 'https://script.google.com/macros/s/REEMPLAZAR_CON_TU_URL/exec';
 // Token debe coincidir exactamente con el que guardaste en setupTokenEntrega2()
 const WEBAPP_TOKEN = 'TC2026-hvac-operaciones';
 
@@ -1002,10 +1002,14 @@ function renderTabComentarios(c) {
 // ============ ACCIONES DE ESCRITURA ============
 
 async function apiPost(datos) {
-  const res = await fetch(WEBAPP_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token: WEBAPP_TOKEN, ...datos })
+  const params = new URLSearchParams({
+    token: WEBAPP_TOKEN,
+    accion: datos.accion,
+    payload: JSON.stringify(datos)
+  });
+  const res = await fetch(`${WEBAPP_URL}?${params}`, {
+    method: 'GET',
+    redirect: 'follow'
   });
   return await res.json();
 }
