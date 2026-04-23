@@ -254,7 +254,7 @@ select.input-modern {
         <div>
           <label class="mono text-[9px] uppercase tracking-[0.2em] text-neutral-500 block mb-1.5">Prioridad</label>
           <select id="nv-prioridad" class="input-modern edit-field cursor-pointer">
-            <option>Normal</option>
+            <option>No urgente</option>
             <option>Urgente</option>
             <option>Crítico</option>
           </select>
@@ -488,7 +488,7 @@ const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tq
 const SHEET_EDIT_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`;
 
 // ⚠️  REEMPLAZA ESTA URL con la URL /exec del Web App después de publicarlo
-const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwRl7SRLnKashtBnsrjB1VaPnkSX6n5TQSJ5JUhDcoSa4FiRTa38tXSkx36_8wD8zxp/exec';
+const WEBAPP_URL = 'https://script.google.com/macros/s/REEMPLAZAR_CON_TU_URL/exec';
 // Token debe coincidir exactamente con el que guardaste en setupTokenEntrega2()
 const WEBAPP_TOKEN = 'TC2026-hvac-operaciones';
 
@@ -928,7 +928,7 @@ function renderTabEditar(c) {
         <div>
           <label class="mono text-[9px] uppercase tracking-[0.2em] text-neutral-600 block mb-1.5">Prioridad</label>
           <select id="ed-prioridad" class="edit-field input-modern cursor-pointer">
-            ${['Normal','Urgente','Crítico'].map(p => `<option ${p === c.prioridad ? 'selected' : ''}>${p}</option>`).join('')}
+            ${['No urgente','Urgente','Crítico'].map(p => `<option ${p === c.prioridad ? 'selected' : ''}>${p}</option>`).join('')}
           </select>
         </div>
         <div>
@@ -951,6 +951,9 @@ function renderTabEditar(c) {
       <div class="flex gap-3 pt-2">
         <button onclick="guardarEdicion(${c.id})" class="btn-primary flex-1 justify-center" id="btn-guardar-edicion">Guardar cambios</button>
         <button onclick="switchTab('detalle')" class="btn-ghost">Cancelar</button>
+      </div>
+      <div class="pt-4 border-t border-neutral-900 mt-4">
+        <button onclick="confirmarEliminar(${c.id})" class="btn-danger w-full text-center">🗑 Eliminar cotización permanentemente</button>
       </div>
     </div>`;
 }
@@ -1012,6 +1015,25 @@ async function apiPost(datos) {
     redirect: 'follow'
   });
   return await res.json();
+}
+
+async function confirmarEliminar(id) {
+  const c = cotizaciones.find(x => x.id === id);
+  if (!c) return;
+  if (!confirm(`¿Eliminar "${c.proyecto}" permanentemente? Esta acción no se puede deshacer.`)) return;
+
+  try {
+    const result = await apiPost({ accion: 'eliminar', fila: c.fila, autor: usuarioActual.nombre });
+    if (result.ok) {
+      mostrarToast('✓ Cotización eliminada', true);
+      cerrarPanel();
+      await cargarDatos();
+    } else {
+      throw new Error(result.error || 'Error desconocido');
+    }
+  } catch(err) {
+    mostrarToast('Error: ' + err.message, false);
+  }
 }
 
 async function guardarEdicion(id) {
