@@ -893,7 +893,7 @@ function renderTabDetalle(c) {
 
 // --- TAB EDITAR ---
 function renderTabEditar(c) {
-  if (!usuarioActual) {
+  if (!usuarioActual || !usuarioActual.activo) {
     document.getElementById('panel-content').innerHTML = `
       <div class="text-center py-16">
         <div class="serif-italic text-2xl text-neutral-600 mb-4">Modo lectura</div>
